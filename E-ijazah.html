@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aplikasi Nilai E-Ijazah</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="./style.css"/>
+   
+</head>
+<body>
+
+
+<!-- ========== HALAMAN LOGIN (NO META PILL) ========== -->
+<div id="loginPage" class="login-shell">
+  <!-- Background dekoratif -->
+  <div class="login-bg">
+    <div class="bg-gradient"></div>
+    <svg class="bg-shape" viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="lg1" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#1a73e8" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#34a853" stop-opacity="0.25"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="650" cy="120" rx="220" ry="120" fill="url(#lg1)"/>
+      <ellipse cx="120" cy="500" rx="260" ry="150" fill="url(#lg1)"/>
+    </svg>
+  </div>
+
+  <!-- Top bar (tetap) -->
+  <header class="top-bar login-topbar">
+    <span>APLIKASI NILAI E - IJAZAH SD 2025</span>
+    <span class="version">Versi 2.6 2025</span>
+  </header>
+
+  <main class="login-main">
+    <!-- Panel branding / ilustrasi -->
+    <section class="login-brand">
+      <div class="brand-card">
+        <div class="brand-logo" aria-hidden="true">📘</div>
+        <h1 class="brand-title">E-Ijazah</h1>
+        <p class="brand-sub">Kelola data sekolah, siswa, dan nilai secara cepat & aman.</p>
+        <ul class="brand-points" role="list">
+          <li>✔️ Import Excel multi-sheet</li>
+          <li>✔️ Cetak PDF & Transkrip</li>
+          <li>✔️ Visualisasi progres</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Panel form login -->
+    <section class="login-panel-new" aria-labelledby="loginTitle">
+      <h2 id="loginTitle" class="panel-title">Masuk ke Aplikasi</h2>
+
+      <form id="loginForm" class="login-form" onsubmit="handleLogin(event)" novalidate>
+        <!-- Kode Aplikasi -->
+        <label for="appCode" class="form-label">Kode Aplikasi</label>
+        <div class="input-wrap">
+          <span class="input-icon" aria-hidden="true">🔐</span>
+          <input
+            type="text"
+            id="appCode"
+            name="appCode"
+            inputmode="latin"
+            autocomplete="one-time-code"
+            spellcheck="false"
+            placeholder="Masukkan kode yang diberikan admin"
+            required
+            aria-required="true"
+          />
+          <button class="btn-ghost" type="button" id="pasteBtn" title="Tempel dari clipboard">Tempel</button>
+        </div>
+        <p class="hint">Gunakan kode resmi. Huruf besar/kecil dianggap sama.</p>
+
+        <!-- Kurikulum (segmented control) -->
+        <fieldset class="segmented" aria-label="Pilih kurikulum">
+          <input type="radio" id="kurikulumMerdeka" name="kurikulum" value="Merdeka" checked>
+          <label for="kurikulumMerdeka">Kurikulum Merdeka</label>
+
+          <input type="radio" id="kurikulum13" name="kurikulum" value="K13">
+          <label for="kurikulum13">Kurikulum 13 (K13)</label>
+        </fieldset>
+
+        <!-- Aksi -->
+        <div class="btn-row">
+          <button type="submit" class="btn btn-large btn-login">Masuk</button>
+          <button type="button" class="btn btn-large btn-cancel" id="cancelBtn">Batal</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="login-footer">© Prasetya Lukmana</footer>
+</div>
+<!-- ========== /HALAMAN LOGIN (NO META PILL) ========== -->
+
+
+    <!-- DASBOR ADMIN -->
+    <div id="adminDashboard" class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">Admin Panel</div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="menu-item" data-target="rekapNilaiAdmin">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    Rekap Nilai
+</a></li>
+                <li><a href="#" class="menu-item active" data-target="sekolah">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Database Sekolah
+                </a></li>
+                <li><a href="#" class="menu-item" data-target="siswa">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Database Siswa
+                </a></li>
+            </ul>
+            <button id="logoutBtn" class="btn btn-large">Logout</button>
+        </aside>
+        <main class="main-content">
+            <!-- KONTEN DATABASE SEKOLAH (ADMIN) -->
+            <section id="sekolah" class="content-section active">
+                <div class="content-header">
+                    <h2>Database Sekolah</h2>
+                    <button type="button" id="btnTambahSekolah" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+        <span>Tambah Sekolah Baru</span>
+    </button>
+                    <div class="header-buttons">
+                        <button class="btn btn-import" data-target-input="importSekolahInput">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Import Excel
+                        </button>
+                        <button class="btn btn-delete" data-table-id="sekolah">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            Hapus Semua Data
+                        </button>
+                        <input type="file" id="importSekolahInput" class="file-input" accept=".xlsx, .xls">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-table-id="sekolah" data-key-index="0" data-key-type="string">KODE BIASA</th>
+                                <th class="sortable" data-table-id="sekolah" data-key-index="1" data-key-type="string">KODE PRO</th>
+                                <th class="sortable" data-table-id="sekolah" data-key-index="2" data-key-type="string">KECAMATAN</th>
+                                <th class="sortable" data-table-id="sekolah" data-key-index="3" data-key-type="string">NPSN</th>
+                                <th class="sortable" data-table-id="sekolah" data-key-index="4" data-key-type="string">NAMA SEKOLAH LENGKAP</th>
+                                <th class="sortable" data-table-id="sekolah" data-key-index="5" data-key-type="string">NAMA SEKOLAH</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sekolahTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination-controls" data-table-id="sekolah">
+                    <span class="pagination-info"></span>
+                    <div class="pagination-nav">
+                        <label>Baris per halaman:</label>
+                        <select class="rows-per-page"><option value="10">10</option><option value="30">30</option><option value="50">50</option><option value="all">Semua</option></select>
+                        <button class="btn btn-nav prev-page">Sebelumnya</button><button class="btn btn-nav next-page">Berikutnya</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KONTEN DATABASE SISWA (ADMIN) -->
+            <section id="siswa" class="content-section">
+                <div class="content-header">
+                    <h2>Database Siswa</h2>
+                    <div class="header-buttons">
+                        <button class="btn btn-import" data-target-input="importSiswaInput">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Import Excel
+                        </button>
+                         <button class="btn btn-delete" data-table-id="siswa">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            Hapus Semua Data
+                        </button>
+                        <input type="file" id="importSiswaInput" class="file-input" accept=".xlsx, .xls">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-table-id="siswa" data-key-index="0" data-key-type="string">KODE BIASA</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="1" data-key-type="string">KODE PRO</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="2" data-key-type="string">NAMA SEKOLAH</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="3" data-key-type="string">KECAMATAN</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="4" data-key-type="number">NO</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="5" data-key-type="string">NO INDUK</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="6" data-key-type="string">NOPES</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="7" data-key-type="string">NISN</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="9" data-key-type="string">TEMPAT & TGL LAHIR</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
+                                <th class="sortable" data-table-id="siswa" data-key-index="11" data-key-type="string">NO IJAZAH</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSiswaTableBody"></tbody>
+                    </table>
+                </div>
+                 <div class="pagination-controls" data-table-id="siswa">
+                    <span class="pagination-info"></span>
+                    <div class="pagination-nav">
+                        <label>Baris per halaman:</label>
+                        <select class="rows-per-page"><option value="10">10</option><option value="30">30</option><option value="50">50</option><option value="all">Semua</option></select>
+                        <button class="btn btn-nav prev-page">Sebelumnya</button><button class="btn btn-nav next-page">Berikutnya</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="rekapNilaiAdmin" class="content-section">
+    <div class="content-header">
+        <h2>Rekap Nilai Sekolah</h2>
+        <div class="header-buttons">
+            <button class="btn btn-pdf" id="downloadRekapPdfBtn" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Cetak PDF
+            </button>
+        </div>
+    </div>
+    
+    <div class="filter-controls">
+    <select id="filterKurikulum" class="form-control">
+        <option value="">Semua Kurikulum</option>
+        <option value="Merdeka">Merdeka</option>
+        <option value="K13">K13</option>
+    </select>
+    <select id="filterKecamatan" class="form-control">
+        <option value="">Semua Kecamatan</option>
+    </select>
+    <select id="filterSekolah" class="form-control">
+        <option value="">Semua Sekolah</option>
+    </select>
+    <button class="btn btn-action btn-login" id="searchRekapBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Cari
+    </button>
+</div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+    <tr>
+        <th class="sortable" data-table-id="rekapNilai" data-key-index="0" data-key-type="number">No</th>
+        <th class="sortable" data-table-id="rekapNilai" data-key-index="1" data-key-type="string">NISN</th>
+        <th class="sortable" data-table-id="rekapNilai" data-key-index="2" data-key-type="string">Nama Siswa</th>
+        <th class="sortable" data-table-id="rekapNilai" data-key-index="3" data-key-type="string">Asal Sekolah</th>
+        <th class="sortable" data-table-id="rekapNilai" data-key-index="100" data-key-type="number">Rata-rata</th>
+    </tr>
+</thead>
+            <tbody id="rekapNilaiTableBody"></tbody>
+        </table>
+    </div>
+</section>
+        </main>
+    </div>
+
+<div id="sekolahModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="sekolahModalTitle">Tambah Sekolah Baru</h2>
+            <span class="close-btn" id="closeSekolahModalBtn">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="sekolahForm">
+                <input type="hidden" id="sekolahModalMode"> <input type="hidden" id="originalKodeBiasa"> <div class="settings-form-grid">
+                    <div class="form-group">
+                        <label for="kodeBiasa">Kode Biasa</label>
+                        <input type="text" id="kodeBiasa" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="kodePro">Kode PRO</label>
+                        <input type="text" id="kodePro" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="kecamatan">Kecamatan</label>
+                        <input type="text" id="kecamatan" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="npsn">NPSN</label>
+                        <input type="text" id="npsn" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="namaSekolah">Nama Sekolah (Lengkap)</label>
+                        <input type="text" id="namaSekolah" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="namaSekolahSingkat">Nama Sekolah (Singkat)</label>
+                        <input type="text" id="namaSekolahSingkat">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+    <!-- DASBOR SEKOLAH -->
+    <div id="sekolahDashboard" class="dashboard">
+        <aside class="sidebar">
+            <div id="sekolahSidebarHeader" class="sidebar-header">Dasbor Sekolah</div>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="menu-item" data-target="dashboardSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Dasbor
+                </a></li>
+                <li><a href="#" class="menu-item" data-target="profilSiswaSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Profil Siswa
+                </a></li>
+                 <li>
+                    <a href="#" class="menu-item has-submenu" data-target="isiNilaiMenu">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        Isi Nilai
+                    </a>
+                    <ul class="submenu" id="isiNilaiMenu">
+                        <li><a href="#" class="submenu-item" data-semester="9" data-semester-name="KELAS 5 SEMESTER 1">9 KELAS 5 SEMESTER 1</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="10" data-semester-name="KELAS 5 SEMESTER 2">10 KELAS 5 SEMESTER 2</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="11" data-semester-name="KELAS 6 SEMESTER 1">11 KELAS 6 SEMESTER 1</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="12" data-semester-name="KELAS 6 SEMESTER 2">12 KELAS 6 SEMESTER 2</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" class="menu-item" data-target="transkripNilaiSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Transkrip Nilai
+                </a></li>
+                <li><a href="#" class="menu-item" data-target="sklSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="m10 14 2 2 4-4"></path></svg>
+                    SURAT KETERANGAN LULUS (SKL)
+                </a></li>
+                 <li><a href="#" class="menu-item" data-target="skkbSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8a2 2 0 0 0 2-2V7H6v12a2 2 0 0 0 2 2Z"></path><path d="M16 3.5V7H8V3.5a2.5 2.5 0 1 1 5 0V7"></path><path d="M12 12v-1"></path><path d="M12 17v-2"></path></svg>
+                    SKKB
+                </a></li>
+<li><a href="#" class="menu-item" data-target="rekapNilaiSection">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+    REKAP NILAI
+</a></li>
+                <li><a href="#" class="menu-item" data-target="cetakGabunganSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                    Cetak Gabungan
+                </a></li>
+                <li><a href="#" class="menu-item" data-target="settingSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Setting
+                </a></li>
+            </ul>
+            <button id="sekolahLogoutBtn" class="btn btn-large">Logout</button>
+        </aside>
+        <main class="main-content">
+    <section id="dashboardSection" class="content-section">
+
+
+
+        
+    <div class="content-header">
+        <h2 id="dashboardSchoolName">Dasbor Statistik</h2>
+        <div id="version-info-badge"></div>
+    </div>
+    
+    <div class="dashboard-layout">
+        <div class="stat-card total-siswa">
+  <div class="icon">👥</div>
+  <div class="info">
+    <h3>Jumlah Total Siswa</h3>
+    <p id="statTotalSiswa">35 Siswa</p>
+  </div>
+</div>
+
+<div class="stat-card kurikulum-info">
+  <div class="icon">📘</div>
+  <div class="info">
+    <h3>Kurikulum Digunakan</h3>
+    <p id="statKurikulum">Merdeka</p>
+  </div>
+</div>
+
+        
+        <div class="chart-card">
+            <h3>Kelengkapan Data Umum</h3>
+            <div class="chart-container">
+                <canvas id="completionChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <h3>Rata-rata Nilai per Mata Pelajaran</h3>
+            <div class="chart-container">
+                <canvas id="averageGradeChart"></canvas>
+            </div>
+        </div>
+
+        <div class="quick-progress-card">
+            <h3>Progres Cepat Pengisian Nilai</h3>
+            <div id="quickProgressContainer"></div>
+        </div>
+
+        <div class="action-items-card">
+            <h3>Perlu Perhatian</h3>
+            <ul id="actionItemsContainer" class="action-list"></ul>
+        </div>
+    </div>
+
+    
+</section>
+
+    <section id="profilSiswaSection" class="content-section">
+        <div class="sekolah-info-header">
+            <h2>** DAFTAR PROFIL SISWA **</h2>
+            <div class="sekolah-info-grid">
+                <strong>PROPINSI</strong><span id="sekolahInfoPropinsi"></span>
+                <strong>KECAMATAN</strong><span id="sekolahInfoKecamatan"></span>
+                <strong>KABUPATEN</strong><span id="sekolahInfoKabupaten"></span>
+                <strong>NPSN</strong><span id="sekolahInfoNpsn"></span>
+                <strong>SEKOLAH</strong><span id="sekolahInfoNama"></span>
+                <strong>TOTAL SISWA</strong><span id="sekolahInfoTotalSiswa"></span>
+            </div>
+        </div>
+        <div class="content-header">
+            <input type="search" id="searchProfilSiswa" class="search-bar" placeholder="Cari Nama, NIS, atau NISN..." data-table-id="sekolahSiswa">
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NISN</th>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NIS</th>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NO PESERTA</th>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">TEMPAT, TANGGAL LAHIR</th>
+                        <th class="sortable" data-table-id="sekolahSiswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
+                        <th>NO IJAZAH</th>
+                        <th>AKSI</th>
+                    </tr>
+                </thead>
+                <tbody id="sekolahSiswaTableBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination-controls" data-table-id="sekolahSiswa">
+            <span class="pagination-info"></span>
+            <div class="pagination-nav">
+                <label>Baris per halaman:</label>
+                <select class="rows-per-page"><option value="10">10</option><option value="30">30</option><option value="50">50</option><option value="all">Semua</option></select>
+                <button class="btn btn-nav prev-page">Sebelumnya</button><button class="btn btn-nav next-page">Berikutnya</button>
+            </div>
+        </div>
+    </section>
+    <section id="isiNilaiSection" class="content-section">
+         <div class="content-header">
+            <h2 id="isiNilaiTitle">Isi Nilai Siswa</h2>
+            <input type="search" id="searchIsiNilai" class="search-bar" placeholder="Cari Nama Siswa..." data-table-id="isiNilai">
+            <div id="autosaveIndicator" class="autosave-indicator"></div>
+             <div class="header-buttons">
+                <button type="button" id="deleteAllGradesBtn" class="btn btn-delete" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    Hapus Semua Nilai Semester Ini
+                </button>
+                <button type="button" id="btnDownloadTemplate" class="btn btn-import">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Template
+                </button>
+                <input type="file" id="uploadExcelInput" accept=".xlsx,.xls" style="display:none">
+
+               <button type="button" id="btnUploadNilai" class="btn btn-upload">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Upload Nilai
+                </button>
+            </div>
+        </div>
+         <div class="table-container" id="isiNilaiTableContainer">
+         </div>
+         <div class="pagination-controls" data-table-id="isiNilai">
+            <span class="pagination-info"></span>
+            <div class="pagination-nav">
+                <label>Baris per halaman:</label>
+                <select class="rows-per-page"><option value="10">10</option><option value="30">30</option><option value="50">50</option><option value="all">Semua</option></select>
+                <button class="btn btn-nav prev-page">Sebelumnya</button><button class="btn btn-nav next-page">Berikutnya</button>
+            </div>
+        </div>
+    </section>
+
+
+
+<section id="transkripNilaiSection" class="content-section">
+    <div class="content-header">
+        <h2 style="margin-bottom: 0;">Transkrip Nilai</h2>
+        <input type="search" id="searchTranskrip" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="transkripNilai">
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>NO</th>
+                    <th class="sortable" data-table-id="transkripNilai" data-key-index="8" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="transkripNilai" data-key-index="7" data-key-type="string">NISN</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                </tr>
+            </thead>
+            <tbody id="transkripSiswaTableBody"></tbody>
+        </table>
+    </div>
+    <nav class="pagination-nav" data-table-id="transkripNilai">
+        <!-- TRANSKRIP NILAI - PAGINATION (REPLACEMENT, 1:1) -->
+<div class="pagination-controls" data-table-id="transkripNilai">
+  <span class="pagination-info"></span>
+  <div class="pagination-nav">
+    <label>Baris per halaman:</label>
+    <select class="rows-per-page">
+      <option value="10">10</option>
+      <option value="30">30</option>
+      <option value="50">50</option>
+      <option value="all">Semua</option>
+    </select>
+    <button class="btn btn-nav prev-page">Sebelumnya</button>
+    <button class="btn btn-nav next-page">Berikutnya</button>
+  </div>
+</div>
+
+
+
+    </nav>
+</section>
+
+   <section id="sklSection" class="content-section">
+    <div class="content-header">
+        <h2 style="margin-bottom: 0;">Surat Keterangan Lulus (SKL)</h2>
+        <input type="search" id="searchSkl" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="skl">
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>NO</th>
+                    <th class="sortable" data-table-id="skl" data-key-index="8" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="skl" data-key-index="7" data-key-type="string">NISN</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                </tr>
+            </thead>
+            <tbody id="sklSiswaTableBody"></tbody>
+        </table>
+    </div>
+    <nav class="pagination-nav" data-table-id="skl">
+        <!-- SKL - PAGINATION (REPLACEMENT, 1:1) -->
+<div class="pagination-controls" data-table-id="skl">
+  <span class="pagination-info"></span>
+  <div class="pagination-nav">
+    <label>Baris per halaman:</label>
+    <select class="rows-per-page">
+      <option value="10">10</option>
+      <option value="30">30</option>
+      <option value="50">50</option>
+      <option value="all">Semua</option>
+    </select>
+    <button class="btn btn-nav prev-page">Sebelumnya</button>
+    <button class="btn btn-nav next-page">Berikutnya</button>
+  </div>
+</div>
+
+
+
+    </nav>
+</section>
+
+   <section id="skkbSection" class="content-section">
+    <div class="content-header">
+        <h2 style="margin-bottom: 0;">Surat Keterangan Kelakuan Baik (SKKB)</h2>
+        <input type="search" id="searchSkkb" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="skkb">
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>NO</th>
+                    <th class="sortable" data-table-id="skkb" data-key-index="8" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="skkb" data-key-index="7" data-key-type="string">NISN</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                </tr>
+            </thead>
+            <tbody id="skkbSiswaTableBody"></tbody>
+        </table>
+    </div>
+    <nav class="pagination-nav" data-table-id="skkb">
+       <div class="pagination-controls" data-table-id="skkb">
+  <span class="pagination-info"></span>
+  <div class="pagination-nav">
+    <label>Baris per halaman:</label>
+    <select class="rows-per-page">
+      <option value="10">10</option>
+      <option value="30">30</option>
+      <option value="50">50</option>
+      <option value="all">Semua</option>
+    </select>
+    <button class="btn btn-nav prev-page">Sebelumnya</button>
+    <button class="btn btn-nav next-page">Berikutnya</button>
+  </div>
+</div>
+
+
+    </nav>
+</section>
+
+
+<section id="rekapNilaiSection" class="content-section">
+    <div class="content-header">
+        <h2>Rekap Nilai Akhir Siswa</h2>
+        <input type="search" id="searchRekapNilai" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="rekapNilai">
+    </div>
+    <div class="table-container">
+        <table>
+            <thead id="rekapNilaiThead">
+                </thead>
+            <tbody id="rekapNilaiTbody">
+                </tbody>
+        </table>
+    </div>
+    <div class="pagination-controls" data-table-id="rekapNilai">
+        <span class="pagination-info"></span>
+        <div class="pagination-nav">
+            <label>Baris per halaman:</label>
+            <select class="rows-per-page"><option value="10">10</option><option value="30">30</option><option value="50">50</option><option value="all">Semua</option></select>
+            <button class="btn btn-nav prev-page">Sebelumnya</button><button class="btn btn-nav next-page">Berikutnya</button>
+        </div>
+    </div>
+</section>
+    <section id="cetakGabunganSection" class="content-section">
+        <div class="content-header">
+            <h2>Cetak Laporan Gabungan</h2>
+            <input type="search" id="searchCetakGabungan" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="cetakGabungan">
+        </div>
+        <div class="pro-feature-message" id="cetakGabunganProMessage">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22m-6-6l6 6 6-6"></path><path d="M18 4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2h-2"></path><path d="M6 14h12v8H6z"/></svg>
+            <div>Fitur ini hanya tersedia untuk pengguna PRO.</div>
+            <div>Silakan beli kode PRO untuk menggunakan menu ini.</div>
+        </div>
+        <div class="table-container" id="cetakGabunganTableContainer" style="display: none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NO</th>
+                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="8" data-key-type="string">NAMA</th>
+                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="7" data-key-type="string">NISN</th>
+                        <th>AKSI</th>
+                    </tr>
+                </thead>
+                <tbody id="cetakGabunganSiswaTableBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination-controls" data-table-id="cetakGabungan">
+            <span class="pagination-info"></span>
+            <div class="pagination-nav">
+                <label>Baris per halaman:</label>
+                <select class="rows-per-page"><option value="10">10</option><option value="30">30</option><option value="50">50</option><option value="all">Semua</option></select>
+                <button class="btn btn-nav prev-page">Sebelumnya</button><button class="btn btn-nav next-page">Berikutnya</button>
+            </div>
+        </div>
+    </section>
+    <section id="settingSection" class="content-section">
+    <div class="content-header">
+        <h2>Setting</h2>
+    </div>
+    <div class="settings-container">
+        <div class="tab-nav">
+            <button type="button" class="tab-button active" data-target="tab-dokumen">Informasi Dokumen</button>
+            <button type="button" class="tab-button" data-target="tab-logo">Pengaturan Logo</button>
+            <button type="button" class="tab-button" data-target="tab-mapel">Manajemen Mapel</button>
+        </div>
+
+        <div class="tab-content">
+            <div id="tab-dokumen" class="tab-pane active">
+                <form id="settingsForm" class="settings-form-grid">
+                    <div class="form-group">
+                        <label for="settingPrincipalName">Nama Kepala Sekolah</label>
+                        <input type="text" id="settingPrincipalName" placeholder="Contoh: Drs. Budi Santoso, M.Pd.">
+                    </div>
+                    <div class="form-group">
+                        <label for="settingPrincipalNip">NIP Kepala Sekolah</label>
+                        <input type="text" id="settingPrincipalNip" placeholder="Contoh: 19680101 199802 1 001">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="settingSchoolAddress">Alamat Sekolah</label>
+                        <input type="text" id="settingSchoolAddress" placeholder="Contoh: Jl. Pendidikan No. 1, Nanga Pinoh">
+                    </div>
+                    <div class="form-group">
+                        <label for="settingPrintDate">Tanggal Cetak Dokumen</label>
+                        <input type="date" id="settingPrintDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="settingTranscriptNumber">Nomor Transkrip Nilai</label>
+                        <input type="text" id="settingTranscriptNumber" placeholder="Contoh: 421.3 / 001 / SKL-SDIT / 2025">
+                    </div>
+                     <div class="form-group">
+                        <label for="settingSkkbNumber">Nomor SKKB</label>
+                        <input type="text" id="settingSkkbNumber" placeholder="Contoh: 421.3 / 002 / SKKB-SDIT / 2025">
+                    </div>
+                </form>
+            </div>
+
+            <div id="tab-logo" class="tab-pane">
+                <div class="settings-logo-group">
+                    <div class="logo-upload-section">
+                        <label>Logo Kiri (Kabupaten)</label>
+                        <div class="logo-upload-controls">
+                            <img id="logoLeftPreview" class="logo-preview" src="https://placehold.co/80x80/f0f0f0/ccc?text=Logo">
+                            <button type="button" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoLeftInput').click();">Pilih File</button>
+                            <input type="file" id="settingLogoLeftInput" class="file-input" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingLogoLeftSize">Ukuran: <span id="logoLeftSizeLabel">80</span>px</label>
+                            <input type="range" id="settingLogoLeftSize" min="40" max="120" value="80">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingLogoLeftPosTop">Posisi Atas: <span id="logoLeftPosTopLabel">15</span>mm</label>
+                            <input type="range" id="settingLogoLeftPosTop" min="0" max="50" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingLogoLeftPosLeft">Posisi Kiri: <span id="logoLeftPosLeftLabel">15</span>mm</label>
+                            <input type="range" id="settingLogoLeftPosLeft" min="0" max="50" value="15">
+                        </div>
+                    </div>
+                    <div class="logo-upload-section">
+                        <label>Logo Kanan (Tut Wuri)</label>
+                        <div class="logo-upload-controls">
+                            <img id="logoRightPreview" class="logo-preview" src="https://placehold.co/80x80/f0f0f0/ccc?text=Logo">
+                            <button type="button" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoRightInput').click();">Pilih File</button>
+                            <input type="file" id="settingLogoRightInput" class="file-input" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingLogoRightSize">Ukuran: <span id="logoRightSizeLabel">80</span>px</label>
+                            <input type="range" id="settingLogoRightSize" min="40" max="120" value="80">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingLogoRightPosTop">Posisi Atas: <span id="logoRightPosTopLabel">15</span>mm</label>
+                            <input type="range" id="settingLogoRightPosTop" min="0" max="50" value="15">
+                        </div>
+                        <div class="form-group">
+                            <label for="settingLogoRightPosRight">Posisi Kanan: <span id="logoRightPosRightLabel">15</span>mm</label>
+                            <input type="range" id="settingLogoRightPosRight" min="0" max="50" value="15">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="settingSklPhotoLayout">Posisi Pasfoto di SKL (% dari Kiri): <span id="sklPhotoLayoutLabel">5</span>%</label>
+                    <input type="range" id="settingSklPhotoLayout" min="1" max="50" value="5">
+                </div>
+            </div>
+
+            <div id="tab-mapel" class="tab-pane">
+    <p style="margin-bottom: 30px; color: var(--text-light);">Atur nama Mata Pelajaran Muatan Lokal (Mulok) dan pilih mapel yang akan ditampilkan pada dokumen cetak.</p>
+    
+    <div class="settings-form-grid">
+        <div class="form-group">
+            <label for="settingMulok1Name">Nama Mulok 1</label>
+            <input type="text" id="settingMulok1Name" placeholder="Contoh: Bahasa Inggris">
+        </div>
+        <div class="form-group">
+            <label for="settingMulok2Name">Nama Mulok 2</label>
+            <input type="text" id="settingMulok2Name" placeholder="Contoh: Bahasa Daerah">
+        </div>
+        <div class="form-group">
+            <label for="settingMulok3Name">Nama Mulok 3</label>
+            <input type="text" id="settingMulok3Name" placeholder="Contoh: TIK">
+        </div>
+    </div>
+    
+    <h4 style="margin-top:20px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">Tampilkan Mata Pelajaran</h4>
+    <div id="subjectSelectionContainer">
+        </div>
+
+    <h4 style="margin-top: 30px; margin-bottom: 10px; border-top: 1px solid var(--border-color); padding-top: 20px;">Backup & Restore</h4>
+    <div class="backup-restore-container">
+        <button type="button" id="backupBtn" class="btn btn-import">Download Backup</button>
+        <button type="button" id="restoreBtn" class="btn btn-upload">Restore dari File</button>
+        <input type="file" id="restoreInput" class="file-input" accept=".json">
+    </div>
+</div>
+        </div>
+        
+        <div class="settings-footer">
+            <button type="button" id="saveSettingsBtn" class="btn btn-large btn-primary">Simpan Semua Pengaturan</button>
+        </div>
+    </div>
+</section>
+
+
+</main>
+    </div>
+
+    <!-- MODAL EDIT SISWA -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Data Siswa</h3>
+                <span class="close-button" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editSiswaForm">
+                <input type="hidden" id="editSiswaIndex">
+                <div class="form-grid">
+                    <div class="form-group"><label for="editNis">NIS</label><input type="text" id="editNis"></div>
+                    <div class="form-group"><label for="editNisn">NISN</label><input type="text" id="editNisn" required></div>
+                    <div class="form-group"><label for="editNoPeserta">No Peserta</label><input type="text" id="editNoPeserta"></div>
+                    <div class="form-group"><label for="editNamaPeserta">Nama Peserta</label><input type="text" id="editNamaPeserta" required></div>
+                    <div class="form-group"><label for="editTempatLahir">Tempat Lahir</label><input type="text" id="editTempatLahir"></div>
+                    <div class="form-group"><label for="editTanggalLahir">Tanggal Lahir</label><input type="date" id="editTanggalLahir"></div>
+                    <div class="form-group full-width"><label for="editNamaOrtu">Nama Orang Tua</label><input type="text" id="editNamaOrtu"></div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-login">Simpan Perubahan</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL BARU: TRANSKRIP NILAI -->
+    <div id="transkripModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Transkrip Nilai Siswa</h3>
+                <span class="close-button" onclick="closeTranskripModal()">&times;</span>
+            </div>
+            <div id="transkripContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeTranskripModal()">Keluar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL BARU: SKL -->
+    <div id="sklModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Surat Keterangan Lulus</h3>
+                <span class="close-button" onclick="closeSklModal()">&times;</span>
+            </div>
+            <div id="sklContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeSklModal()">Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BARU: SKKB -->
+    <div id="skkbModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Surat Keterangan Berkelakuan Baik</h3>
+                <span class="close-button" onclick="closeSkkbModal()">&times;</span>
+            </div>
+            <div id="skkbContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeSkkbModal()">Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PENAMBAHAN: MODAL INFORMASI LOGIN -->
+    <div id="loginInfoModal" class="modal-overlay">
+        <div class="modal-content info-modal-content">
+            <div class="modal-header">
+                <h3>Login Berhasil!</h3>
+                <span class="close-button" onclick="closeLoginInfoModal()">&times;</span>
+            </div>
+            <<div id="loginInfoContent">
+    <p class="welcome-text">Selamat datang,</p>
+    <p class="school-name"><span id="infoNamaSekolah"></span></p>
+    <ul>
+        <li><strong>Jumlah Siswa:</strong> <span id="infoJumlahSiswa"></span></li>
+        <li><strong>Kurikulum Dipilih:</strong> <span id="infoKurikulum"></span></li>
+    </ul>
+</div>
+            <div class="modal-footer">
+                <button class="btn btn-login" onclick="closeLoginInfoModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Elemen tersembunyi untuk pembuatan PDF -->
+    <div id="pdf-content"></div>
+
+    <!-- NOTIFIKASI: Elemen untuk notifikasi -->
+    <div id="notification"></div>
+
+    <!-- PENAMBAHAN: INDIKATOR PROSES (LOADING) -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    
+
+   
+
+
+
+
+
+
+<script src="script.js"></script>
+</body>
+</html>
